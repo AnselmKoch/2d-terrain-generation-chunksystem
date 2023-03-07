@@ -79,10 +79,10 @@ public class World {
         this.lastBaseChunkCoordinate = spawnChunkCoordinate;
         this.generateChunks(spawnChunk);
     }
-    /*
 
+    /**
+     * Works on the queue to load and unload chunks so all the work is split along ticks
      */
-
     public void tick() {
         tickCounter++;
         if (chunksToGenerate.size() != 0 && tickCounter % 3 == 0) {
@@ -94,7 +94,7 @@ public class World {
             loadedChunks.put(tempChunk.getChunkCoordinate().toString(), tempChunk);
             loadedTiles.put(tempChunk, tiles);
         }
-        if (chunksToDelete.size() != 0 &&tickCounter % 7 == 0 && tickCounter % 3 != 0) {
+        if (chunksToDelete.size() != 0 && tickCounter % 2 == 0) {
             Chunk deleteChunk = chunksToDelete.poll();
             destroyChunk(deleteChunk);
             try {
@@ -105,6 +105,10 @@ public class World {
         }
     }
 
+    /**
+     * Generates chunk via chunk coordinates based on the players position
+     * @param baseChunk
+     */
     private void generateChunks(Chunk baseChunk) {
         if (baseChunk == null) {
             return;
@@ -188,6 +192,11 @@ public class World {
     }
 
 
+    /**
+     * Loads a chunk from a chunk-file
+     * @param chunkCoordinate
+     * @return
+     */
     private Chunk loadChunk(ChunkCoordinate chunkCoordinate) {
         Chunk readChunk = null;
         try {
@@ -205,6 +214,9 @@ public class World {
         return readChunk;
     }
 
+    /**
+     * Checks if player is in a new chunk and which chunk should be loaded / unloaded
+     */
     public void handlePlayerMove() {
         int playerX = (int)Game.player.getPosition().x;
         int playerY = (int)Game.player.getPosition().y;
@@ -231,6 +243,11 @@ public class World {
 
     }
 
+    /**
+     * Generates Tiles for Chunk based on the value in the chunk 2d Array
+     * @param chunk
+     * @return
+     */
     private Tile[][] getChunkTiles(Chunk chunk) {
         Tile[][] tiles = new Tile[tilesXInChunk][tilesYInChunk];
         double[][] noiseValues = chunk.getTiles();
@@ -256,6 +273,10 @@ public class World {
         return tiles;
     }
 
+    /**
+     * Unloads chunk, saves it to the chunk-file and removes Tiles from the WorldRenderer
+     * @param chunk
+     */
     private void destroyChunk(Chunk chunk) {
         loadedChunks.remove(chunk.getChunkCoordinate().toString());
         Tile[][] tiles = loadedTiles.get(chunk);
@@ -270,6 +291,11 @@ public class World {
         }
     }
 
+    /**
+     * Calculates if the chunk is out of sight to unload it
+     * @param chunk
+     * @return
+     */
     private boolean isChunkOutOfSight(Chunk chunk) {
         ChunkCoordinate chunkCoordinate = chunk.getChunkCoordinate();
         Vector2i chunkCoord = new Vector2i(chunkCoordinate.getMapCoordinate().x, chunkCoordinate.getMapCoordinate().y);
